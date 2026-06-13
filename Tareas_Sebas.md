@@ -6,4 +6,8 @@
 ## Organizar carpetas del repositorio.
 - Pendiente
 
+## Backend Python
 
+## Stored Procedures
+
+## Docker
