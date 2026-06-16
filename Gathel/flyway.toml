@@ -122,3 +122,6 @@ ignoreWithNoCheck = true
 
 [environments.target1]
 url = "jdbc:sqlserver://localhost;databaseName=Gathel;encrypt=mandatory;integratedSecurity=true;trustServerCertificate=true"
+
+[environments.target2]
+url = "jdbc:sqlserver://localhost;databaseName=Gathel;encrypt=mandatory;integratedSecurity=true;trustServerCertificate=true"
