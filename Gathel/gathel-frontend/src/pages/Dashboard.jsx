@@ -1,6 +1,8 @@
+import Layout from "../components/Layout";
+
 export default function Dashboard() {
     return (
-        <div className="container mt-4">
+        <Layout>
             <h1>Dashboard</h1>
 
             <div className="row mt-4">
@@ -31,6 +33,6 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
-        </div>
+        </Layout>
     );
 }
