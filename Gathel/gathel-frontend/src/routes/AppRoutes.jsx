@@ -8,6 +8,8 @@ import Predicciones from "../pages/Predicciones";
 import CrearPrediccion from "../pages/CrearPrediccion";
 import Billeteras from "../pages/Billeteras";
 import Perfil from "../pages/Perfil";
+import NotFound from "../pages/NotFound";
+
 
 export default function AppRoutes() {
     return (
@@ -21,6 +23,7 @@ export default function AppRoutes() {
                 <Route path="/perfil" element={<Perfil />} />
                 <Route path="/crear-proposicion" element={<CrearProposicion />} />
                 <Route path="/crear-prediccion" element={<CrearPrediccion />} />
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </BrowserRouter>
     );

@@ -1,4 +1,5 @@
 import Layout from "../components/Layout";
+import { proposiciones } from "../mock/proposiciones";
 
 export default function Proposiciones() {
     return (
@@ -10,23 +11,20 @@ export default function Proposiciones() {
                     <tr>
                         <th>Título</th>
                         <th>Estado</th>
-                        <th>Fecha Evento</th>
+                        <th>Fecha</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    <tr>
-                        <td>El jugador alcanzará nivel 50</td>
-                        <td>Activa</td>
-                        <td>25/06/2026</td>
-                    </tr>
-
-                    <tr>
-                        <td>Completará la misión legendaria</td>
-                        <td>En votación</td>
-                        <td>30/06/2026</td>
-                    </tr>
+                    {proposiciones.map((p) => (
+                        <tr key={p.id}>
+                            <td>{p.titulo}</td>
+                            <td>{p.estado}</td>
+                            <td>{p.fecha}</td>
+                        </tr>
+                    ))}
                 </tbody>
+
             </table>
         </Layout>
     );

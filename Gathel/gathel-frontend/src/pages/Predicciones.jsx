@@ -1,11 +1,14 @@
 import Layout from "../components/Layout";
+import { predicciones } from "../mock/predicciones";
 
 export default function Predicciones() {
     return (
         <Layout>
+
             <h1>Predicciones</h1>
 
             <table className="table table-bordered mt-4">
+
                 <thead>
                     <tr>
                         <th>Proposición</th>
@@ -15,19 +18,19 @@ export default function Predicciones() {
                 </thead>
 
                 <tbody>
-                    <tr>
-                        <td>Alcanzará nivel 50</td>
-                        <td>Sí</td>
-                        <td>Puntos</td>
-                    </tr>
 
-                    <tr>
-                        <td>Ganará el torneo</td>
-                        <td>No</td>
-                        <td>Dinero</td>
-                    </tr>
+                    {predicciones.map((p) => (
+                        <tr key={p.id}>
+                            <td>{p.proposicion}</td>
+                            <td>{p.respuesta}</td>
+                            <td>{p.tipo}</td>
+                        </tr>
+                    ))}
+
                 </tbody>
+
             </table>
+
         </Layout>
     );
 }

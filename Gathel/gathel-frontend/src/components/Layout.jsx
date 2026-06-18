@@ -1,16 +1,22 @@
 import { Link } from "react-router-dom";
+import Header from "./Header";
 
 export default function Layout({ children }) {
     return (
         <div className="d-flex">
+
+            {/* Menú lateral */}
             <div
-                className="bg-dark text-white p-3"
+                className="text-white p-3"
                 style={{
                     width: "250px",
-                    minHeight: "100vh"
+                    minHeight: "100vh",
+                    backgroundColor: "#1f2937"
                 }}
             >
-                <h3>Gathel</h3>
+                <h2 className="text-center">
+                    Gathel
+                </h2>
 
                 <hr />
 
@@ -82,9 +88,17 @@ export default function Layout({ children }) {
                 </ul>
             </div>
 
-            <div className="flex-grow-1 p-4">
-                {children}
+            {/* Contenido */}
+            <div className="flex-grow-1">
+
+                <Header />
+
+                <div className="p-4">
+                    {children}
+                </div>
+
             </div>
+
         </div>
     );
 }
