@@ -3,6 +3,7 @@ uvicorn[standard]
 sqlalchemy
 pyodbc
 pydantic-settings
+email-validator
 pyjwt
 passlib[bcrypt]
 pytest
