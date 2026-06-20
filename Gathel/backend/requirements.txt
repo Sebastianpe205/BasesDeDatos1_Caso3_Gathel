@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pyodbc
+pydantic-settings
+pyjwt
+passlib[bcrypt]
+pytest
+httpx
+
+# TODO: fijar versiones especificas antes de la entrega final
