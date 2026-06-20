@@ -1,0 +1,131 @@
+# ============================================================
+# Docker Compose - Gathel
+# Levanta: SQL Server, inicializacion de la BD, migraciones de
+# Flyway, y el backend de FastAPI, en ese orden.
+#
+# Uso:
+#   1. Copiar .env.example a .env y completar los valores.
+#   2. docker compose up --build
+#
+# El frontend (gathel-frontend) NO esta incluido todavia -- ver
+# el TODO al final de este archivo.
+# ============================================================
+
+services:
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gathel-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${DB_SA_PASSWORD}
+      # Developer edition: gratuita y sin las limitaciones de recursos
+      # de Express (importante dado el volumen del seeding: 250k eventos).
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"
+      ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - gathel-network
+
+  # Crea la base de datos 'Gathel' si no existe todavia. Flyway
+  # necesita que la base de datos ya exista antes de poder conectarse
+  # a ella y correr las migraciones.
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: gathel-db-init
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      DB_SA_PASSWORD: ${DB_SA_PASSWORD}
+      DB_NAME: ${DB_NAME:-Gathel}
+    entrypoint: >
+      bash -c "
+      /opt/mssql-tools18/bin/sqlcmd -C -S sqlserver -U sa -P \"$$DB_SA_PASSWORD\" -Q \"IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'$$DB_NAME') CREATE DATABASE [$$DB_NAME];\"
+      "
+    networks:
+      - gathel-network
+
+  flyway:
+    image: flyway/flyway:10
+    container_name: gathel-flyway
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./migrations:/flyway/sql
+    command: >
+      -url=jdbc:sqlserver://sqlserver:1433;databaseName=${DB_NAME:-Gathel};encrypt=true;trustServerCertificate=true
+      -user=sa
+      -password=${DB_SA_PASSWORD}
+      migrate
+    networks:
+      - gathel-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gathel-backend
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      # Login de aplicacion de bajo privilegio (NO sa). Debe coincidir
+      # con el login que crea V17__RolesSeguridad.sql -- confirmar el
+      # nombre exacto con tu companero.
+      DB_SERVER: sqlserver
+      DB_PORT: 1433
+      DB_NAME: ${DB_NAME:-Gathel}
+      DB_USER: ${DB_APP_USER}
+      DB_PASSWORD: ${DB_APP_PASSWORD}
+      DB_DRIVER: "ODBC Driver 18 for SQL Server"
+      DB_ENCRYPT: "True"
+      DB_TRUST_SERVER_CERTIFICATE: "True"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      REFRESH_TOKEN_EXPIRE_DAYS: 7
+      APP_NAME: Gathel API
+      ENVIRONMENT: docker
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    networks:
+      - gathel-network
+
+  # ----------------------------------------------------------
+  # TODO: agregar el servicio del frontend cuando tu companero
+  # tenga su Dockerfile listo en gathel-frontend/. Algo asi:
+  #
+  # frontend:
+  #   build:
+  #     context: ./gathel-frontend
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - backend
+  #   environment:
+  #     VITE_API_URL: http://localhost:8000
+  #   ports:
+  #     - "5173:5173"
+  #   networks:
+  #     - gathel-network
+  # ----------------------------------------------------------
+
+volumes:
+  mssql_data:
+
+networks:
+  gathel-network:
+    driver: bridge
