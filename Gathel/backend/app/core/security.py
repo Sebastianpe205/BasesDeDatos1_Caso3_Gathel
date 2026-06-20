@@ -11,8 +11,8 @@ Notas de diseno:
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-import jwt # type: ignore
-from passlib.context import CryptContext # type: ignore
+import jwt 
+from passlib.context import CryptContext 
 
 from app.core.config import settings
 from app.core.exceptions import InvalidCredentialsError
