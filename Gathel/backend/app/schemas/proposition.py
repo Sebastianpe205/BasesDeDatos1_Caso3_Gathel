@@ -1,24 +1,54 @@
 """
 Schemas Pydantic para el dominio de proposiciones.
 """
-from pydantic import BaseModel
+from datetime import datetime
+
+from pydantic import BaseModel, Field
+
+from app.schemas.common import ApiModel
 
 
 class PropositionCreate(BaseModel):
-    # TODO: definir campos de creacion de proposicion
-    pass
+    TargetPlayerId: int
+    Title: str = Field(min_length=1, max_length=200)
+    Description: str | None = Field(default=None, max_length=2000)
+    EventDate: datetime
+    EventGroupId: int | None = Field(
+        default=None,
+        description=(
+            "Si la proposicion es sobre un evento que ya tiene otras "
+            "proposiciones (alguien mas ya propuso sobre el), se manda "
+            "el EventGroupId existente. Si se omite, se crea un grupo "
+            "de evento nuevo con ventana de votacion de 24 horas."
+        ),
+    )
 
 
-class PropositionResponse(BaseModel):
-    # TODO: definir campos expuestos al frontend
-    pass
+class PropositionResponse(ApiModel):
+    PropositionId: int
+    CreatedByPlayerId: int
+    TargetPlayerId: int
+    EventGroupId: int
+    Title: str
+    Description: str | None
+    EventDate: datetime | None
+    PredictionCloseDate: datetime | None
+    IsPublic: bool
+    RequiresMoneyPrediction: bool
+    RequiresPointPrediction: bool
+    CreatedAt: datetime
+
+
+class PropositionCreatedResponse(ApiModel):
+    """Respuesta del SP sp_CrearProposicion: solo los IDs generados."""
+    PropositionId: int
+    EventGroupId: int
 
 
 class VoteRequest(BaseModel):
-    # TODO: definir campos (valor del voto)
-    pass
+    VoteValue: bool
 
 
 class AcceptanceRequest(BaseModel):
-    # TODO: definir campos (aceptado/rechazado, motivo de rechazo)
-    pass
+    IsAccepted: bool
+    RejectionReason: str | None = Field(default=None, max_length=500)

@@ -1,19 +1,47 @@
 """
 Schemas Pydantic para el dominio de wallets.
 """
-from pydantic import BaseModel
+from datetime import datetime
+from decimal import Decimal
+
+from pydantic import BaseModel, Field
+
+from app.schemas.common import ApiModel
 
 
-class WalletResponse(BaseModel):
-    # TODO: definir campos (balance, tipo de wallet, moneda)
-    pass
+class WalletResponse(ApiModel):
+    """
+    Respuesta 'plana' que combina datos de Wallets + WalletTypes +
+    Currencies. NO se construye con model_validate(wallet_orm) directo
+    porque WalletTypeName/CurrencyCode viven en relaciones anidadas
+    (wallet.wallet_type.WalletTypeName) -- el service la arma a mano:
+
+        WalletResponse(
+            WalletId=w.WalletId,
+            WalletTypeName=w.wallet_type.WalletTypeName,
+            CurrencyCode=w.currency.CurrencyCode,
+            CurrentBalance=w.CurrentBalance,
+            IsBlocked=w.IsBlocked,
+        )
+    """
+    WalletId: int
+    WalletTypeName: str
+    CurrencyCode: str
+    CurrentBalance: Decimal
+    IsBlocked: bool
 
 
-class WalletTransactionResponse(BaseModel):
-    # TODO: definir campos del historial de transacciones
-    pass
+class WalletTransactionResponse(ApiModel):
+    WalletTransactionId: int
+    Amount: Decimal
+    PreviousBalance: Decimal
+    NewBalance: Decimal
+    Description: str | None
+    TransactionDate: datetime
 
 
 class PointPurchaseRequest(BaseModel):
-    # TODO: definir campos (cantidad de puntos, metodo de pago)
-    pass
+    PointsAmount: int = Field(gt=0)
+    PaymentMethodId: int
+    CurrencyId: int
+    AmountPaid: Decimal = Field(gt=0)
