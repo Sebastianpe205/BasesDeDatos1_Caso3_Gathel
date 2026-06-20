@@ -11,11 +11,19 @@ Notas de diseno:
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-import jwt 
-from passlib.context import CryptContext 
+import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from passlib.context import CryptContext
 
 from app.core.config import settings
 from app.core.exceptions import InvalidCredentialsError
+
+# Se usa HTTPBearer (no OAuth2PasswordBearer) porque /auth/login recibe
+# JSON (LoginRequest), no el formulario username/password que espera el
+# flujo OAuth2 password estandar. HTTPBearer solo le dice a Swagger UI
+# que muestre el boton "Authorize" para pegar un Bearer token.
+_bearer_scheme = HTTPBearer()
 
 _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -91,3 +99,30 @@ def decode_token(token: str, expected_type: str | None = None) -> dict[str, Any]
         raise InvalidCredentialsError(f"Se esperaba un token de tipo '{expected_type}'.")
 
     return payload
+
+
+def get_current_player_id(
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
+) -> int:
+    """
+    Dependency de FastAPI que extrae el access_token del header
+    'Authorization: Bearer <token>', lo valida, y devuelve el PlayerId
+    autenticado. Se usa en todos los endpoints protegidos de app/routers/.
+
+    Uso en un router:
+        @router.get("/players/me")
+        def get_me(player_id: int = Depends(get_current_player_id)):
+            ...
+
+    Raises:
+        HTTPException 401: si el token falta, es invalido, o expiro.
+    """
+    try:
+        payload = decode_token(credentials.credentials, expected_type="access")
+        return int(payload["sub"])
+    except InvalidCredentialsError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=exc.message,
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
