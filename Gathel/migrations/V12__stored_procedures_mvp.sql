@@ -128,6 +128,7 @@ BEGIN
         );
 
         COMMIT TRANSACTION;
+        SELECT @PropositionId AS PropositionId, @EventGroupId AS EventGroupId;
 
     END TRY
 
