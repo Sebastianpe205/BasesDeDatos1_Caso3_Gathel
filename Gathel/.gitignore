@@ -2,5 +2,6 @@
 # Flyway ignores
 *.user.toml
 *.artifact
+*.scpf
 report.html
 report.json
